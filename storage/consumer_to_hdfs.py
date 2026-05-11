@@ -3,16 +3,38 @@ import time
 import os
 import threading
 from datetime import datetime
+from urllib.parse import urlparse, urlunparse
 from kafka import KafkaConsumer
 from hdfs import InsecureClient
+import requests
+from requests.adapters import HTTPAdapter
 
 HDFS_API_DIR = "/data/github/api/"
 HDFS_RSS_DIR = "/data/github/rss/"
 LOCAL_API_LIVE = "dashboard/data/live_api.json"
 LOCAL_RSS_LIVE = "dashboard/data/live_rss.json"
 
-# Menggunakan 'namenode' (karena Windows sudah diajari lewat file hosts)
-hdfs_client = InsecureClient('http://namenode:9870', user='root')
+# ============================================================
+# HDFS CLIENT dengan DataNode hostname rewrite
+# WebHDFS me-redirect tulis ke DataNode pakai hostname internal
+# Docker (mis. 'datanode:9866') yang tidak bisa diakses dari luar.
+# Adapter ini otomatis rewrite hostname tersebut ke 'localhost'.
+# ============================================================
+class _DockerHostRewriteAdapter(HTTPAdapter):
+    def send(self, request, **kwargs):
+        parsed = urlparse(request.url)
+        if parsed.hostname not in ('localhost', '127.0.0.1', None):
+            port = parsed.port
+            new_netloc = f'localhost:{port}' if port else 'localhost'
+            request.url = urlunparse(parsed._replace(netloc=new_netloc))
+        return super().send(request, **kwargs)
+
+def make_hdfs_client():
+    session = requests.Session()
+    session.mount('http://', _DockerHostRewriteAdapter())
+    return InsecureClient('http://localhost:9870', user='root', session=session)
+
+hdfs_client = make_hdfs_client()
 
 def init_local_files():
     os.makedirs("dashboard/data", exist_ok=True)
@@ -79,7 +101,7 @@ def process_topic(topic_name, hdfs_dir, live_file_path):
                 last_save_time = time.time()
 
 def main():
-    print("Menjalankan HDFS Consumer (Opsi B - Murni Python!)...")
+    print("Menjalankan HDFS Consumer...")
     init_local_files()
     
     t1 = threading.Thread(target=process_topic, args=('github-api', HDFS_API_DIR, LOCAL_API_LIVE))

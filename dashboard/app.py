@@ -1,110 +1,88 @@
-import streamlit as st
-import pandas as pd
-from pyspark.sql import SparkSession
+import json
+from flask import Flask, render_template, jsonify
+from hdfs import InsecureClient
 
-st.set_page_config(page_title="GitHub Trending Dashboard", layout="wide")
+# ============================================================
+# KONFIGURASI
+# ============================================================
+app = Flask(__name__)
 
-st.markdown("""
-    <style>
-    .main-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #4A90E2;
-        margin-bottom: 0px;
+# Pakai localhost karena dashboard dijalankan dari luar Docker
+HDFS_URL = "http://localhost:9870"
+HDFS_CLEAN_DIR = "/data/clean/"
+
+# ============================================================
+# FUNGSI UTILITAS: BACA JSON DARI HDFS
+# ============================================================
+def get_hdfs_client():
+    """Buat koneksi HDFS baru per request agar tidak crash saat startup."""
+    return InsecureClient(HDFS_URL, user='root')
+
+def read_clean_from_hdfs(file_name):
+    """Membaca file JSON clean dari HDFS. Return None jika gagal."""
+    hdfs_path = f"{HDFS_CLEAN_DIR}{file_name}"
+    try:
+        client = get_hdfs_client()
+        with client.read(hdfs_path, encoding='utf-8') as reader:
+            return json.load(reader)
+    except Exception as e:
+        print(f"  [WARNING] Gagal membaca {hdfs_path}: {e}")
+        return None
+
+# ============================================================
+# ROUTES
+# ============================================================
+@app.route('/')
+def index():
+    """Halaman utama dashboard — baca semua data clean dari HDFS."""
+    summary = read_clean_from_hdfs("summary.json") or {
+        "last_updated": "Belum ada data — Jalankan spark_analyzer.py terlebih dahulu",
+        "total_repos": 0,
+        "highest_stars": 0,
+        "top_language": "N/A",
+        "total_languages": 0,
+        "total_rss_articles": 0
     }
-    .sub-title {
-        font-size: 1.1rem;
-        color: #A0AAB2;
-        margin-bottom: 30px;
-    }
-    .credit-card {
-        text-align: center; 
-        border: 1px solid #2e3440; 
-        border-radius: 10px; 
-        padding: 20px; 
-        background-color: #1e222a;
-        margin-top: 50px;
-    }
-    .credit-title {
-        color: #4A90E2; 
-        margin-bottom: 15px;
-        font-weight: bold;
-    }
-    .credit-names {
-        font-size: 15px; 
-        margin: 0; 
-        color: #eceff4;
-        line-height: 1.8;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
-st.markdown('<p class="main-title">GitHub Trending Analytics</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Real-time Data Pipeline: API - Kafka - HDFS - Apache Spark</p>', unsafe_allow_html=True)
+    top_repos = read_clean_from_hdfs("top_repos.json") or []
+    lang_dist  = read_clean_from_hdfs("language_dist.json") or []
+    word_freq  = read_clean_from_hdfs("word_freq.json") or []
+    rss_latest = read_clean_from_hdfs("rss_latest.json") or []
 
-@st.cache_resource
-def init_spark():
-    return SparkSession.builder \
-        .appName("Streamlit_Spark_Dashboard") \
-        .config("spark.driver.extraJavaOptions", "-Djava.security.manager=allow") \
-        .config("spark.executor.extraJavaOptions", "-Djava.security.manager=allow") \
-        .getOrCreate()
+    return render_template('index.html',
+        summary=summary,
+        top_repos=top_repos,
+        lang_dist=lang_dist,
+        word_freq=word_freq,
+        rss_latest=rss_latest,
+        lang_dist_json=json.dumps(lang_dist),
+        word_freq_json=json.dumps(word_freq)
+    )
 
-spark = init_spark()
-path_hdfs = "webhdfs://namenode:9870/data/github/api/"
+@app.route('/api/data')
+def api_data():
+    """API endpoint — kembalikan semua data clean sebagai JSON."""
+    return jsonify({
+        "summary":    read_clean_from_hdfs("summary.json") or {},
+        "top_repos":  read_clean_from_hdfs("top_repos.json") or [],
+        "lang_dist":  read_clean_from_hdfs("language_dist.json") or [],
+        "word_freq":  read_clean_from_hdfs("word_freq.json") or [],
+        "rss_latest": read_clean_from_hdfs("rss_latest.json") or []
+    })
 
-try:
-    with st.spinner("Menyedot data dari HDFS dengan Apache Spark..."):
-        df_spark = spark.read.option("multiline", "true").json(path_hdfs)
-        df_spark = df_spark.dropDuplicates(["full_name"])
-        df_pandas = df_spark.select("full_name", "language", "stargazers_count").toPandas()
-
-    st.success("Sinkronisasi berhasil! Menampilkan data HDFS terkini.")
-
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Distribusi Bahasa Pemrograman")
-        lang_count = df_pandas['language'].value_counts()
-        st.bar_chart(lang_count, use_container_width=True)
-        
-    with col2:
-        st.subheader("Top 5 Repositori Populer")
-        top_repos = df_pandas.sort_values(by='stargazers_count', ascending=False).head(5)
-        st.dataframe(
-            top_repos, 
-            use_container_width=True,
-            hide_index=True
-        )
-
-    st.markdown("---")
-
-    st.markdown("### Quick Insights")
-    m1, m2, m3 = st.columns(3)
-    
-    m1.metric("Total Trending Repositories", f"{len(df_pandas)} Repo")
-    
-    if not df_pandas['language'].empty:
-        top_lang = df_pandas['language'].mode()[0]
-    else:
-        top_lang = "N/A"
-    m2.metric("Most Popular Language", top_lang)
-    
-    highest_stars = df_pandas['stargazers_count'].max()
-    m3.metric("Highest Stars in Dataset", f"{highest_stars:,}")
-
-except Exception as e:
-    st.error(f"Gagal membaca data dari HDFS. Error detail: {e}")
-
-st.markdown(f"""
-    <div class="credit-card">
-        <h3 class="credit-title">Tim Pengembang - Kelompok 7</h3>
-        <p class="credit-names">
-            Khumaidi Kharis Az-zacky (5027241049)<br>
-            Prabaswara Febrian Winandika (5027241069)<br>
-            Zahra Khaalishah (5027241070)<br>
-            I Gede Bagus Saka Sinatrya (5027241088)<br>
-            Jofanka Al-Kautsar Pangestu Abady (5027241107)
-        </p>
-    </div>
-""", unsafe_allow_html=True)
+# ============================================================
+# MAIN
+# ============================================================
+if __name__ == '__main__':
+    print()
+    print("=" * 55)
+    print("   GitHub Trending Dashboard — Kelompok 7")
+    print("=" * 55)
+    print(f"   Sumber data : HDFS ({HDFS_URL})")
+    print(f"   Dashboard   : http://localhost:5000")
+    print(f"   API data    : http://localhost:5000/api/data")
+    print("=" * 55)
+    print("   Tekan Ctrl+C untuk menghentikan server")
+    print("=" * 55)
+    print()
+    app.run(host='0.0.0.0', port=5000, debug=False)
