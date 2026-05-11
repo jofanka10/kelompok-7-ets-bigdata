@@ -1,21 +1,26 @@
 import json
 import time
+import os
 import requests
 from datetime import datetime, timedelta
 from kafka import KafkaProducer
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 producer = KafkaProducer(
     bootstrap_servers=['localhost:9092'],
     value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-    key_serializer=lambda k: k.encode('utf-8'),
-    acks='all',
-    enable_idempotence=True,
-    api_version=(3, 9, 0) 
+    key_serializer=lambda v: v.encode('utf-8') if v else None,
+    api_version=(3, 9, 0),
+    retries=5
 )
 
 TOPIC_NAME = 'github-api'
 
-GITHUB_TOKEN = ""
+# Get GitHub token from environment variable 
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
 
 def get_dynamic_date():
     from datetime import datetime, timedelta

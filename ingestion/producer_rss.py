@@ -9,10 +9,9 @@ from kafka import KafkaProducer
 producer = KafkaProducer(
     bootstrap_servers=['localhost:9092'],
     value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-    key_serializer=lambda k: k.encode('utf-8'),
-    acks='all',
-    enable_idempotence=True,
-    api_version=(3, 9, 0)
+    key_serializer=lambda v: v.encode('utf-8') if v else None,
+    api_version=(3, 9, 0),
+    retries=5 # 
 )
 
 TOPIC_NAME = 'github-rss'

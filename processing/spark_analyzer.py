@@ -193,8 +193,6 @@ def main():
 
     spark = SparkSession.builder \
         .appName("ETS_BigData_Jofanka") \
-        .config("spark.driver.extraJavaOptions", "-Djava.security.manager=allow") \
-        .config("spark.executor.extraJavaOptions", "-Djava.security.manager=allow") \
         .getOrCreate()
 
     print("[SPARK] Session berhasil dibuat!")

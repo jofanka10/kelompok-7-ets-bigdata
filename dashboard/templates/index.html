@@ -398,9 +398,12 @@
 
         @media (max-width: 640px) {
             .metrics-grid { grid-template-columns: 1fr; }
+            .charts-grid { gap: 16px; }
             .header { padding: 16px 20px; }
             .container { padding: 16px 20px; }
-            .header-content { flex-direction: column; align-items: flex-start; }
+            .header-content { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .metric-card { padding: 16px 18px; }
+            .card { padding: 18px; }
         }
     </style>
 </head>
@@ -419,10 +422,11 @@
                 <span class="dot"></span>
                 Last Updated: {{ summary.last_updated }}
             </div>
-            <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">
+            <button class="theme-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
                 <!-- Sun icon (shown in dark mode) -->
                 <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
                     <circle cx="12" cy="12" r="5"/>
                     <line x1="12" y1="1" x2="12" y2="3"/>
                     <line x1="12" y1="21" x2="12" y2="23"/>
@@ -436,7 +440,7 @@
                 <!-- Moon icon (shown in light mode) -->
                 <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     style="display:none">
+                     style="display:none" aria-hidden="true">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
                 <span id="themeLabel">Light Mode</span>
@@ -575,36 +579,17 @@
     const iconMoon   = document.getElementById('iconMoon');
     const themeLabel = document.getElementById('themeLabel');
 
-    function applyTheme(theme) {
-        html.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        if (theme === 'light') {
-            iconSun.style.display  = 'none';
-            iconMoon.style.display = 'block';
-            themeLabel.textContent  = 'Dark Mode';
-        } else {
-            iconSun.style.display  = 'block';
-            iconMoon.style.display = 'none';
-            themeLabel.textContent  = 'Light Mode';
-        }
-        updateChartColors();
-    }
-
-    function toggleTheme() {
-        const current = html.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark');
-    }
-
-    // Restore saved theme
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    applyTheme(savedTheme);
+    // ============================
+    // DECLARE CHART DATA VARIABLES FIRST
+    // ============================
+    let langData = [];
+    let wordData = [];
+    let langChart = null;
+    let wordChart = null;
 
     // ============================
-    // CHART.JS DATA
+    // COLOR PALETTES (declare early)
     // ============================
-    const langData = {{ lang_dist_json | safe }};
-    const wordData = {{ word_freq_json | safe }};
-
     const blueShades = [
         '#1a73e8','#2196f3','#42a5f5','#64b5f6','#90caf9',
         '#58a6ff','#1976d2','#0d47a1','#1565c0','#1e88e5',
@@ -615,6 +600,80 @@
         '#6ee7b7','#86efac','#a7f3d0','#34d399','#10b981',
         '#059669','#047857','#065f46','#064e3b','#022c22'
     ];
+
+    function applyTheme(theme) {
+        try {
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'light') {
+                iconSun.style.display  = 'none';
+                iconMoon.style.display = 'block';
+                themeLabel.textContent  = 'Dark Mode';
+            } else {
+                iconSun.style.display  = 'block';
+                iconMoon.style.display = 'none';
+                themeLabel.textContent  = 'Light Mode';
+            }
+            updateChartColors();
+        } catch (error) {
+            console.error('Error applying theme:', error);
+        }
+    }
+
+    function toggleTheme() {
+        const current = html.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // Restore saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+
+    // ============================
+    // CHART.JS DATA — Initialize values
+    // ============================
+    (function() {
+        try {
+            const langJSON = '{{ lang_dist_json | safe }}';
+            const wordJSON = '{{ word_freq_json | safe }}';
+            
+            console.log('[DEBUG] langJSON received:', langJSON);
+            console.log('[DEBUG] wordJSON received:', wordJSON);
+            
+            // Parse language data
+            if (langJSON && langJSON.trim() && langJSON !== 'None' && langJSON !== '[]') {
+                try {
+                    langData = JSON.parse(langJSON);
+                    console.log('[DEBUG] Successfully parsed langData:', langData.length, 'items');
+                } catch (e) {
+                    console.error('[ERROR] Failed to parse langJSON:', e.message);
+                }
+            } else {
+                console.warn('[WARNING] langJSON is empty or invalid, using fallback');
+                langData = [];
+            }
+            
+            // Parse word data
+            if (wordJSON && wordJSON.trim() && wordJSON !== 'None' && wordJSON !== '[]') {
+                try {
+                    wordData = JSON.parse(wordJSON);
+                    console.log('[DEBUG] Successfully parsed wordData:', wordData.length, 'items');
+                } catch (e) {
+                    console.error('[ERROR] Failed to parse wordJSON:', e.message);
+                }
+            } else {
+                console.warn('[WARNING] wordJSON is empty or invalid, using fallback');
+                wordData = [];
+            }
+            
+        } catch (error) {
+            console.error('[ERROR] Outer try-catch:', error.message);
+        }
+        
+        console.log('[DEBUG] Final state - langData:', langData.length, 'items, wordData:', wordData.length, 'items');
+    })();
+
+    // NOW safe to apply theme
+    applyTheme(savedTheme);
 
     function getChartColors() {
         const isDark = html.getAttribute('data-theme') === 'dark';
@@ -629,8 +688,6 @@
             }
         };
     }
-
-    let langChart, wordChart;
 
     function buildChartOptions(colors) {
         return {
@@ -664,54 +721,94 @@
 
     function buildCharts() {
         const colors = getChartColors();
+        console.log('[BUILD] Starting buildCharts - langData:', langData.length, 'wordData:', wordData.length);
 
-        if (langData.length > 0) {
-            const ctxLang = document.getElementById('langChart').getContext('2d');
-            if (langChart) langChart.destroy();
-            langChart = new Chart(ctxLang, {
-                type: 'bar',
-                data: {
-                    labels: langData.map(d => d.language),
-                    datasets: [{
-                        label: 'Repositories',
-                        data: langData.map(d => d.count),
-                        backgroundColor: langData.map((_, i) => blueShades[i % blueShades.length]),
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        maxBarThickness: 48
-                    }]
-                },
-                options: buildChartOptions(colors)
-            });
+        if (!langData || langData.length === 0) {
+            console.warn('[WARNING] langData is empty - chart will not render');
+        } else {
+            try {
+                const langCanv = document.getElementById('langChart');
+                if (!langCanv) {
+                    console.error('[ERROR] langChart canvas element not found');
+                    return;
+                }
+                const ctxLang = langCanv.getContext('2d');
+                if (langChart) {
+                    langChart.destroy();
+                    console.log('[DEBUG] Previous langChart destroyed');
+                }
+                langChart = new Chart(ctxLang, {
+                    type: 'bar',
+                    data: {
+                        labels: langData.map(d => d.language),
+                        datasets: [{
+                            label: 'Repositories',
+                            data: langData.map(d => d.count),
+                            backgroundColor: langData.map((_, i) => blueShades[i % blueShades.length]),
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            maxBarThickness: 48
+                        }]
+                    },
+                    options: buildChartOptions(colors)
+                });
+                console.log('[SUCCESS] langChart created successfully');
+            } catch (e) {
+                console.error('[ERROR] Failed to create langChart:', e.message);
+            }
         }
 
-        if (wordData.length > 0) {
-            const ctxWord = document.getElementById('wordChart').getContext('2d');
-            if (wordChart) wordChart.destroy();
-            wordChart = new Chart(ctxWord, {
-                type: 'bar',
-                data: {
-                    labels: wordData.map(d => d.word),
-                    datasets: [{
-                        label: 'Frequency',
-                        data: wordData.map(d => d.count),
-                        backgroundColor: wordData.map((_, i) => tealShades[i % tealShades.length]),
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        maxBarThickness: 48
-                    }]
-                },
-                options: buildChartOptions(colors)
-            });
+        if (!wordData || wordData.length === 0) {
+            console.warn('[WARNING] wordData is empty - chart will not render');
+        } else {
+            try {
+                const wordCanv = document.getElementById('wordChart');
+                if (!wordCanv) {
+                    console.error('[ERROR] wordChart canvas element not found');
+                    return;
+                }
+                const ctxWord = wordCanv.getContext('2d');
+                if (wordChart) {
+                    wordChart.destroy();
+                    console.log('[DEBUG] Previous wordChart destroyed');
+                }
+                wordChart = new Chart(ctxWord, {
+                    type: 'bar',
+                    data: {
+                        labels: wordData.map(d => d.word),
+                        datasets: [{
+                            label: 'Frequency',
+                            data: wordData.map(d => d.count),
+                            backgroundColor: wordData.map((_, i) => tealShades[i % tealShades.length]),
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            maxBarThickness: 48
+                        }]
+                    },
+                    options: buildChartOptions(colors)
+                });
+                console.log('[SUCCESS] wordChart created successfully');
+            } catch (e) {
+                console.error('[ERROR] Failed to create wordChart:', e.message);
+            }
         }
     }
 
     function updateChartColors() {
-        buildCharts();
+        try {
+            console.log('[UPDATE] updateChartColors called');
+            buildCharts();
+        } catch (error) {
+            console.error('[ERROR] updateChartColors failed:', error.message);
+        }
     }
 
-    // Build on load
-    buildCharts();
+    // Build on load - wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', buildCharts);
+    } else {
+        buildCharts();
+    }
 </script>
 
 </body>

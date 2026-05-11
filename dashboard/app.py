@@ -49,14 +49,28 @@ def index():
     word_freq  = read_clean_from_hdfs("word_freq.json") or []
     rss_latest = read_clean_from_hdfs("rss_latest.json") or []
 
+    # Debug logging
+    print(f"\n[DASHBOARD] Data loaded from HDFS:")
+    print(f"  - Summary: {len(str(summary))} chars")
+    print(f"  - Top repos: {len(top_repos)} items")
+    print(f"  - Language dist: {len(lang_dist)} items")
+    print(f"  - Word freq: {len(word_freq)} items")
+    print(f"  - RSS latest: {len(rss_latest)} items")
+
+    lang_dist_json = json.dumps(lang_dist, ensure_ascii=False)
+    word_freq_json = json.dumps(word_freq, ensure_ascii=False)
+    
+    print(f"  - lang_dist_json length: {len(lang_dist_json)} chars")
+    print(f"  - word_freq_json length: {len(word_freq_json)} chars")
+
     return render_template('index.html',
         summary=summary,
         top_repos=top_repos,
         lang_dist=lang_dist,
         word_freq=word_freq,
         rss_latest=rss_latest,
-        lang_dist_json=json.dumps(lang_dist),
-        word_freq_json=json.dumps(word_freq)
+        lang_dist_json=lang_dist_json,
+        word_freq_json=word_freq_json
     )
 
 @app.route('/api/data')
