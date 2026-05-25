@@ -34,8 +34,11 @@ services:
     ports:
       - "9870:9870"   # NameNode Web UI
       - "8020:8020"   # NameNode RPC
+    mem_limit: 4g
+    memswap_limit: 4g
     environment:
       ENSURE_NAMENODE_DIR: /tmp/hadoop-hadoop/dfs/name
+      HADOOP_HEAPSIZE: 2048
     env_file:
       - ./hadoop.env
     command: ["hdfs", "namenode"]
@@ -50,6 +53,11 @@ services:
         condition: service_started
     ports:
       - "9864:9864"
+      - "9866:9866"
+    mem_limit: 8g
+    memswap_limit: 8g
+    environment:
+      HADOOP_HEAPSIZE: 4096
     env_file:
       - ./hadoop.env
     command: ["hdfs", "datanode"]
@@ -64,6 +72,10 @@ services:
         condition: service_started
     ports:
       - "8088:8088"   # ResourceManager Web UI
+    mem_limit: 4g
+    memswap_limit: 4g
+    environment:
+      HADOOP_HEAPSIZE: 2048
     env_file:
       - ./hadoop.env
     command: ["yarn", "resourcemanager"]

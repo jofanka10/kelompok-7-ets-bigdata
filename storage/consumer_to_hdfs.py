@@ -14,12 +14,6 @@ HDFS_RSS_DIR = "/data/github/rss/"
 LOCAL_API_LIVE = "dashboard/data/live_api.json"
 LOCAL_RSS_LIVE = "dashboard/data/live_rss.json"
 
-# ============================================================
-# HDFS CLIENT dengan DataNode hostname rewrite
-# WebHDFS me-redirect tulis ke DataNode pakai hostname internal
-# Docker (mis. 'datanode:9866') yang tidak bisa diakses dari luar.
-# Adapter ini otomatis rewrite hostname tersebut ke 'localhost'.
-# ============================================================
 class _DockerHostRewriteAdapter(HTTPAdapter):
     def send(self, request, **kwargs):
         parsed = urlparse(request.url)
@@ -76,7 +70,7 @@ def process_topic(topic_name, hdfs_dir, live_file_path):
         with open(live_file_path, 'w') as f:
             json.dump(live_data, f, indent=4)
             
-        # BATCH LAYER (Opsi B murni)
+        # BATCH LAYER 
         current_time = time.time()
         
         if (current_time - last_save_time >= flush_interval) or (len(buffer) >= 10):

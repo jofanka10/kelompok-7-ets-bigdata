@@ -537,22 +537,15 @@
         </div>
     </div>
 
-    <!-- RSS -->
+    <!-- DATA SOURCE INFO -->
     <div class="card">
-        <h2>Berita Teknologi Terbaru (TechCrunch RSS)</h2>
-        {% if rss_latest %}
-            {% for item in rss_latest %}
-            <div class="rss-item">
-                <a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a>
-                <div class="rss-meta">{{ item.published or "—" }}</div>
-                {% if item.summary %}
-                <div class="rss-summary">{{ item.summary }}</div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        {% else %}
-        <div class="no-data">Belum ada data RSS di HDFS.</div>
-        {% endif %}
+        <h2>ℹ️ Data Sources</h2>
+        <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+            <p><strong>API Data:</strong> GitHub API (producer_api.py) → Kafka → HDFS Bronze → Gold Layer</p>
+            <p><strong>Trending Data:</strong> GitHub Trending scraper (producer_rss.py) → Kafka → HDFS Bronze</p>
+            <p><strong>Update Interval:</strong> Real-time streaming, chart refresh every 30 seconds</p>
+            <p><strong>Storage:</strong> Delta Lake at /lakehouse/gold/ on HDFS (hdfs://namenode:8020)</p>
+        </div>
     </div>
 
     <!-- CREDITS -->
@@ -778,7 +771,7 @@
                         labels: wordData.map(d => d.word),
                         datasets: [{
                             label: 'Frequency',
-                            data: wordData.map(d => d.count),
+                            data: wordData.map(d => d.frequency),
                             backgroundColor: wordData.map((_, i) => tealShades[i % tealShades.length]),
                             borderRadius: 6,
                             borderSkipped: false,
