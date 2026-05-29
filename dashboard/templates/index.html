@@ -415,9 +415,18 @@
     <div class="header-content">
         <div>
             <h1>GitHub Trending Analytics</h1>
-            <p class="subtitle">Real-time Pipeline: API &rarr; Kafka &rarr; HDFS &rarr; Spark &rarr; Dashboard</p>
+            <p class="subtitle">Real-time Pipeline: API &rarr; Kafka &rarr; HDFS &rarr; Bronze &rarr; Silver &rarr; Gold &rarr; Dashboard</p>
         </div>
         <div class="header-right">
+            {% if data_source == 'gold' %}
+            <div class="badge" style="background:color-mix(in srgb,#bc8cff 12%,transparent);color:#bc8cff;border-color:color-mix(in srgb,#bc8cff 30%,transparent)">
+                Gold Layer (Delta Lake)
+            </div>
+            {% else %}
+            <div class="badge" style="background:color-mix(in srgb,#f0883e 12%,transparent);color:#f0883e;border-color:color-mix(in srgb,#f0883e 30%,transparent)">
+                Fallback: /data/clean/
+            </div>
+            {% endif %}
             <div class="badge">
                 <span class="dot"></span>
                 Last Updated: {{ summary.last_updated }}
@@ -517,7 +526,7 @@
             </table>
         </div>
         {% else %}
-        <div class="no-data">Belum ada data. Jalankan spark_analyzer.py terlebih dahulu.</div>
+        <div class="no-data">Belum ada data.<br>Jalankan producer → consumer → spark_analyzer.py atau lakehouse/scheduler.py terlebih dahulu.</div>
         {% endif %}
     </div>
 
@@ -539,12 +548,20 @@
 
     <!-- DATA SOURCE INFO -->
     <div class="card">
-        <h2>ℹ️ Data Sources</h2>
+        <h2>Data Sources</h2>
         <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
-            <p><strong>API Data:</strong> GitHub API (producer_api.py) → Kafka → HDFS Bronze → Gold Layer</p>
-            <p><strong>Trending Data:</strong> GitHub Trending scraper (producer_rss.py) → Kafka → HDFS Bronze</p>
-            <p><strong>Update Interval:</strong> Real-time streaming, chart refresh every 30 seconds</p>
-            <p><strong>Storage:</strong> Delta Lake at /lakehouse/gold/ on HDFS (hdfs://namenode:8020)</p>
+            {% if data_source == 'gold' %}
+            <p style="color:var(--accent-purple);font-weight:700;margin-bottom:8px">Data saat ini berasal dari <strong>Gold Layer (Delta Lake)</strong> - Medallion pipeline berjalan!</p>
+            <p><strong>Alur aktif:</strong> producer_api/rss.py &rarr; Kafka &rarr; consumer_to_hdfs.py &rarr; HDFS &rarr; 01_bronze.py &rarr; 02_silver.py &rarr; 03_gold.py &rarr; Dashboard</p>
+            {% else %}
+            <p style="color:var(--accent-orange);font-weight:700;margin-bottom:8px">Data berasal dari <strong>fallback /data/clean/</strong> (spark_analyzer.py) - Gold Layer belum tersedia.</p>
+            <p><strong>Untuk aktifkan Gold Layer:</strong> jalankan <code>python lakehouse/scheduler.py</code> setelah ada data di HDFS.</p>
+            {% endif %}
+            <p><strong>API Data:</strong> GitHub API (producer_api.py) → Kafka → HDFS /data/github/api/</p>
+            <p><strong>Trending Data:</strong> GitHub RSS (producer_rss.py) → Kafka → HDFS /data/github/rss/</p>
+            <p><strong>Update Interval:</strong> Chart refresh setiap 30 detik</p>
+            <p><strong>Gold Storage:</strong> Delta Lake → hdfs://localhost:8020/lakehouse/gold/</p>
+            <p><strong>Verifikasi Gold:</strong> <a href="/api/source" target="_blank" style="color:var(--accent-blue)">/api/source</a> | <a href="/api/data" target="_blank" style="color:var(--accent-blue)">/api/data</a></p>
         </div>
     </div>
 
