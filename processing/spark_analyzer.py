@@ -191,9 +191,21 @@ def main():
     print("  Tekan Ctrl+C untuk menghentikan")
     print("=" * 60)
 
+    # spark = SparkSession.builder \
+    #     .appName("ETS_BigData_Jofanka") \
+    #     .getOrCreate()
+
+    jvm_opts = (
+        "--add-opens=java.base/javax.security.auth=ALL-UNNAMED "
+        "--add-opens=java.base/java.lang=ALL-UNNAMED"
+    )
+
     spark = SparkSession.builder \
         .appName("ETS_BigData_Jofanka") \
+        .config("spark.driver.extraJavaOptions", jvm_opts) \
+        .config("spark.executor.extraJavaOptions", jvm_opts) \
         .getOrCreate()
+
 
     print("[SPARK] Session berhasil dibuat!")
     init_hdfs_dirs()

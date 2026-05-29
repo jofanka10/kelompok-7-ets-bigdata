@@ -1,170 +1,117 @@
 """
-BRONZE LAYER - Ingest Raw Data from HDFS to Delta Lake
+BRONZE LAYER - Ingest Raw Data from HDFS to Lakehouse
 
 Fungsi:
-- Baca JSON raw dari HDFS (GitHub API & RSS)
+- Baca JSON raw dari HDFS (GitHub API & RSS) via Python hdfs client
 - Tambahkan metadata: _ingested_at (timestamp), _source (api/rss)
-- Simpan ke Delta Lake format (Bronze layer)
+- Simpan sebagai JSON via Python (kompatibel Java 23)
+  → Ganti ke Delta format otomatis jika pakai Java 17 (lihat STORAGE_FORMAT)
 
-Data Source:
-- hdfs://namenode:8020/data/github/api/
-- hdfs://namenode:8020/data/github/rss/
+Output: ./lakehouse_data/bronze/github_api.json  (atau Delta jika Java 17)
+        ./lakehouse_data/bronze/github_rss.json
 """
 
-from pyspark.sql import SparkSession
+import sys
+import os
+import json
+from datetime import datetime
+sys.path.insert(0, os.path.dirname(__file__))
+
+from _spark_delta_setup import (
+    get_spark_session, make_hdfs_client, read_hdfs_dir,
+    HDFS_RAW_API, HDFS_RAW_RSS, LOCAL_LAKEHOUSE,
+    BRONZE_API_PATH, BRONZE_RSS_PATH, STORAGE_FORMAT
+)
 from pyspark.sql.functions import current_timestamp, lit
-from delta import configure_spark_with_delta_pip
+
+BRONZE_DIR = os.path.join(LOCAL_LAKEHOUSE, "bronze")
+os.makedirs(BRONZE_DIR, exist_ok=True)
+
+def save(data, name):
+    if STORAGE_FORMAT == "delta":
+        return None  # handled by caller with spark.write
+    path = os.path.join(BRONZE_DIR, f"{name}.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+    print(f"✓ Saved {name}.json ({len(data)} records)")
+    return path
 
 # ============================================================================
-# SETUP: Initialize Spark Session with Delta Lake
-# ============================================================================
-
-builder = SparkSession.builder \
-    .appName("Bronze-GitTrend") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.hadoop.fs.defaultFS", "hdfs://namenode:8020") \
-    .config("spark.hadoop.dfs.client.use.datanode.hostname", "true") \
-    .config("spark.hadoop.dfs.datanode.hostname", "localhost") \
-    .config("spark.sql.files.maxPartitionBytes", "268435456") \
-    .config("spark.task.maxFailures", "4")
-
-spark = configure_spark_with_delta_pip(
-    builder,
-    extra_packages=["io.delta:delta-spark_2.12:3.1.0"]
-).getOrCreate()
-
-spark.sparkContext.setLogLevel("ERROR")
+spark = get_spark_session("Bronze-GitTrend")
+hdfs  = make_hdfs_client()
+ts    = datetime.now().isoformat()
 
 # ============================================================================
-# STEP 1: Read API Data from HDFS
-# ============================================================================
-
 print("\n" + "="*80)
 print("BRONZE LAYER: STEP 1 - Ingest GitHub API Data")
 print("="*80)
 
-api_df_with_meta = None
+api_df = None
 try:
-    api_path = "hdfs://namenode:8020/data/github/api/"
-    print(f"\nReading from: {api_path}")
-
-    api_df = spark.read \
-        .option("multiLine", True) \
-        .json(api_path)
-
-    print(f"✓ API Data loaded: {api_df.count()} records")
-    print("✓ Schema:")
-    api_df.printSchema()
-
-    api_df_with_meta = api_df \
-        .withColumn("_ingested_at", current_timestamp()) \
-        .withColumn("_source", lit("api"))
-
-    print("✓ Metadata added: _ingested_at, _source")
-
+    api_df = read_hdfs_dir(hdfs, spark, HDFS_RAW_API)
+    if api_df is None:
+        print("⚠️  Belum ada data API di HDFS — skip.")
+    else:
+        api_df = api_df.withColumn("_ingested_at", current_timestamp()) \
+                       .withColumn("_source", lit("api"))
+        print(f"✓ API Data: {api_df.count()} records, metadata added")
 except Exception as e:
-    print(f"❌ Error reading API data: {e}")
-
-# ============================================================================
-# STEP 2: Read RSS Data from HDFS
-# ============================================================================
+    print(f"❌ Error: {e}")
 
 print("\n" + "="*80)
 print("BRONZE LAYER: STEP 2 - Ingest RSS Data")
 print("="*80)
 
-rss_df_with_meta = None
+rss_df = None
 try:
-    rss_path = "hdfs://namenode:8020/data/github/rss/"
-    print(f"\nReading from: {rss_path}")
-
-    rss_df = spark.read \
-        .option("multiLine", True) \
-        .json(rss_path)
-
-    print(f"✓ RSS Data loaded: {rss_df.count()} records")
-    print("✓ Schema:")
-    rss_df.printSchema()
-
-    rss_df_with_meta = rss_df \
-        .withColumn("_ingested_at", current_timestamp()) \
-        .withColumn("_source", lit("rss"))
-
-    print("✓ Metadata added: _ingested_at, _source")
-
+    rss_df = read_hdfs_dir(hdfs, spark, HDFS_RAW_RSS)
+    if rss_df is None:
+        print("⚠️  Belum ada data RSS di HDFS — skip.")
+    else:
+        rss_df = rss_df.withColumn("_ingested_at", current_timestamp()) \
+                       .withColumn("_source", lit("rss"))
+        print(f"✓ RSS Data: {rss_df.count()} records, metadata added")
 except Exception as e:
-    print(f"❌ Error reading RSS data: {e}")
-
-# ============================================================================
-# STEP 3: Save to Bronze Delta Layer
-# ============================================================================
+    print(f"❌ Error: {e}")
 
 print("\n" + "="*80)
-print("BRONZE LAYER: STEP 3 - Save to Delta Lake")
+print(f"BRONZE LAYER: STEP 3 - Save ({STORAGE_FORMAT.upper()} format)")
 print("="*80)
 
-api_bronze_path = "hdfs://namenode:8020/lakehouse/bronze/github_api"
-rss_bronze_path = "hdfs://namenode:8020/lakehouse/bronze/github_rss"
-
-if api_df_with_meta is not None:
-    try:
-        api_df_with_meta.write \
-            .format("delta") \
-            .mode("overwrite") \
-            .save(api_bronze_path)
-        print(f"\n✓ API Bronze layer saved to: {api_bronze_path}")
-    except Exception as e:
-        print(f"❌ Error saving API bronze: {e}")
-        api_df_with_meta = None
+if STORAGE_FORMAT == "delta":
+    if api_df:
+        try:
+            api_df.write.format("delta").mode("overwrite").save(BRONZE_API_PATH)
+            print(f"✓ API Bronze (Delta): {BRONZE_API_PATH}")
+        except Exception as e:
+            print(f"❌ {e}"); api_df = None
+    if rss_df:
+        try:
+            rss_df.write.format("delta").mode("overwrite").save(BRONZE_RSS_PATH)
+            print(f"✓ RSS Bronze (Delta): {BRONZE_RSS_PATH}")
+        except Exception as e:
+            print(f"❌ {e}"); rss_df = None
 else:
-    print("⚠️ Skipping API save (no data loaded)")
-
-if rss_df_with_meta is not None:
-    try:
-        rss_df_with_meta.write \
-            .format("delta") \
-            .mode("overwrite") \
-            .save(rss_bronze_path)
-        print(f"✓ RSS Bronze layer saved to: {rss_bronze_path}")
-    except Exception as e:
-        print(f"❌ Error saving RSS bronze: {e}")
-        rss_df_with_meta = None
-else:
-    print("⚠️ Skipping RSS save (no data loaded)")
-
-# ============================================================================
-# STEP 4: Verification
-# ============================================================================
+    if api_df:
+        rows = [dict(r.asDict(), _ingested_at=ts) for r in api_df.collect()]
+        save(rows, "github_api")
+    if rss_df:
+        rows = [dict(r.asDict(), _ingested_at=ts) for r in rss_df.collect()]
+        save(rows, "github_rss")
 
 print("\n" + "="*80)
 print("BRONZE LAYER: STEP 4 - Verification")
 print("="*80)
-
-if api_df_with_meta is not None:
-    try:
-        api_bronze_verify = spark.read.format("delta").load(api_bronze_path)
-        print(f"\n✓ API Bronze verified: {api_bronze_verify.count()} records")
-        print("  Sample data:")
-        api_bronze_verify.select("full_name", "stargazers_count", "_source", "_ingested_at").show(3)
-    except Exception as e:
-        print(f"❌ Error verifying API bronze: {e}")
+if STORAGE_FORMAT == "delta":
+    if api_df: print(f"✓ API: {spark.read.format('delta').load(BRONZE_API_PATH).count()} records")
+    if rss_df: print(f"✓ RSS: {spark.read.format('delta').load(BRONZE_RSS_PATH).count()} records")
 else:
-    print("\n⚠️ Skipping API Bronze verification (no data loaded)")
-
-if rss_df_with_meta is not None:
-    try:
-        rss_bronze_verify = spark.read.format("delta").load(rss_bronze_path)
-        print(f"\n✓ RSS Bronze verified: {rss_bronze_verify.count()} records")
-        print("  Sample data:")
-        rss_bronze_verify.select("full_name", "html_url", "_source", "_ingested_at").show(3)
-    except Exception as e:
-        print(f"❌ Error verifying RSS bronze: {e}")
-else:
-    print("\n⚠️ Skipping RSS Bronze verification (no data loaded)")
+    for name in ["github_api", "github_rss"]:
+        p = os.path.join(BRONZE_DIR, f"{name}.json")
+        if os.path.exists(p):
+            print(f"✓ {name}.json: {len(json.load(open(p)))} records")
 
 print("\n" + "="*80)
 print("✅ BRONZE LAYER COMPLETE!")
 print("="*80 + "\n")
-
 spark.stop()

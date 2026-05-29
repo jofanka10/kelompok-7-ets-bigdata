@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="30">
     <title>GitHub Trending Dashboard — Kelompok 7</title>
-    <meta name="description" content="Real-time GitHub Trending Analytics Dashboard dengan pipeline Big Data: Kafka, HDFS, Apache Spark">
+    <meta name="description"
+        content="Real-time GitHub Trending Analytics Dashboard dengan pipeline Big Data: Kafka, HDFS, Apache Spark">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,40 +21,44 @@
            CSS VARIABLES — DARK & LIGHT
         ============================ */
         :root {
-            --bg-primary:    #0d1117;
-            --bg-secondary:  #161b22;
-            --bg-card:       #1c2128;
-            --bg-hover:      #252c35;
-            --border:        #30363d;
-            --text-primary:  #ecf0f1;
-            --text-secondary:#8b949e;
-            --text-muted:    #6e7681;
-            --accent-blue:   #58a6ff;
-            --accent-teal:   #56d4c8;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #1c2128;
+            --bg-hover: #252c35;
+            --border: #30363d;
+            --text-primary: #ecf0f1;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-teal: #56d4c8;
             --accent-purple: #bc8cff;
             --accent-orange: #f0883e;
-            --accent-green:  #3fb950;
-            --shadow:        0 4px 24px rgba(0,0,0,0.4);
+            --accent-green: #3fb950;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
 
         [data-theme="light"] {
-            --bg-primary:    #f6f8fa;
-            --bg-secondary:  #ffffff;
-            --bg-card:       #ffffff;
-            --bg-hover:      #f0f3f6;
-            --border:        #d0d7de;
-            --text-primary:  #1f2328;
-            --text-secondary:#57606a;
-            --text-muted:    #8c959f;
-            --accent-blue:   #0969da;
-            --accent-teal:   #0d7377;
+            --bg-primary: #f6f8fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #f0f3f6;
+            --border: #d0d7de;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #8c959f;
+            --accent-blue: #0969da;
+            --accent-teal: #0d7377;
             --accent-purple: #6f42c1;
             --accent-orange: #bc4c00;
-            --accent-green:  #1a7f37;
-            --shadow:        0 4px 24px rgba(0,0,0,0.08);
+            --accent-green: #1a7f37;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Inter', -apple-system, sans-serif;
@@ -127,8 +133,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.35; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.35;
+            }
         }
 
         /* Theme toggle button */
@@ -208,10 +221,21 @@
             line-height: 1;
         }
 
-        .metric-card:nth-child(1) .value { color: var(--accent-blue); }
-        .metric-card:nth-child(2) .value { color: var(--accent-orange); }
-        .metric-card:nth-child(3) .value { color: var(--accent-purple); }
-        .metric-card:nth-child(4) .value { color: var(--accent-teal); }
+        .metric-card:nth-child(1) .value {
+            color: var(--accent-blue);
+        }
+
+        .metric-card:nth-child(2) .value {
+            color: var(--accent-orange);
+        }
+
+        .metric-card:nth-child(3) .value {
+            color: var(--accent-purple);
+        }
+
+        .metric-card:nth-child(4) .value {
+            color: var(--accent-teal);
+        }
 
         .metric-card .extra {
             font-size: 0.73rem;
@@ -242,9 +266,14 @@
         /* ============================
            LEADERBOARD TABLE
         ============================ */
-        .table-wrapper { overflow-x: auto; }
+        .table-wrapper {
+            overflow-x: auto;
+        }
 
-        table { width: 100%; border-collapse: collapse; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
         th {
             text-align: left;
@@ -265,17 +294,43 @@
             color: var(--text-primary);
         }
 
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--bg-hover); }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
-        .rank { font-weight: 800; color: var(--text-muted); width: 40px; }
-        .rank-1 { color: #b8970a; }
-        .rank-2 { color: #6e7681; }
-        .rank-3 { color: #9a5829; }
+        tr:hover td {
+            background: var(--bg-hover);
+        }
 
-        [data-theme="dark"] .rank-1 { color: #ffd700; }
-        [data-theme="dark"] .rank-2 { color: #c0c0c0; }
-        [data-theme="dark"] .rank-3 { color: #cd7f32; }
+        .rank {
+            font-weight: 800;
+            color: var(--text-muted);
+            width: 40px;
+        }
+
+        .rank-1 {
+            color: #b8970a;
+        }
+
+        .rank-2 {
+            color: #6e7681;
+        }
+
+        .rank-3 {
+            color: #9a5829;
+        }
+
+        [data-theme="dark"] .rank-1 {
+            color: #ffd700;
+        }
+
+        [data-theme="dark"] .rank-2 {
+            color: #c0c0c0;
+        }
+
+        [data-theme="dark"] .rank-3 {
+            color: #cd7f32;
+        }
 
         .repo-name {
             font-weight: 600;
@@ -284,7 +339,10 @@
             transition: opacity 0.15s;
         }
 
-        .repo-name:hover { opacity: 0.75; text-decoration: underline; }
+        .repo-name:hover {
+            opacity: 0.75;
+            text-decoration: underline;
+        }
 
         .lang-badge {
             display: inline-block;
@@ -296,7 +354,10 @@
             color: var(--accent-blue);
         }
 
-        .stars { font-weight: 700; color: var(--accent-orange); }
+        .stars {
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
 
         .desc-text {
             color: var(--text-secondary);
@@ -327,7 +388,9 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .rss-item:last-child { border-bottom: none; }
+        .rss-item:last-child {
+            border-bottom: none;
+        }
 
         .rss-item a {
             color: var(--text-primary);
@@ -338,7 +401,9 @@
             transition: color 0.15s;
         }
 
-        .rss-item a:hover { color: var(--accent-blue); }
+        .rss-item a:hover {
+            color: var(--accent-blue);
+        }
 
         .rss-item .rss-meta {
             font-size: 0.73rem;
@@ -392,434 +457,475 @@
            RESPONSIVE
         ============================ */
         @media (max-width: 1024px) {
-            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-            .charts-grid  { grid-template-columns: 1fr; }
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 640px) {
-            .metrics-grid { grid-template-columns: 1fr; }
-            .charts-grid { gap: 16px; }
-            .header { padding: 16px 20px; }
-            .container { padding: 16px 20px; }
-            .header-content { flex-direction: column; align-items: flex-start; gap: 12px; }
-            .metric-card { padding: 16px 18px; }
-            .card { padding: 18px; }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                gap: 16px;
+            }
+
+            .header {
+                padding: 16px 20px;
+            }
+
+            .container {
+                padding: 16px 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .metric-card {
+                padding: 16px 18px;
+            }
+
+            .card {
+                padding: 18px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<header class="header">
-    <div class="header-content">
-        <div>
-            <h1>GitHub Trending Analytics</h1>
-            <p class="subtitle">Real-time Pipeline: API &rarr; Kafka &rarr; HDFS &rarr; Bronze &rarr; Silver &rarr; Gold &rarr; Dashboard</p>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>GitHub Trending Analytics</h1>
+                <p class="subtitle">Real-time Pipeline: API &rarr; Kafka &rarr; HDFS &rarr; Bronze &rarr; Silver &rarr;
+                    Gold &rarr; Dashboard</p>
+            </div>
+            <div class="header-right">
+                {% if data_source == 'gold' %}
+                <div class="badge"
+                    style="background:color-mix(in srgb,#bc8cff 12%,transparent);color:#bc8cff;border-color:color-mix(in srgb,#bc8cff 30%,transparent)">
+                    Gold Layer (Delta Lake)
+                </div>
+                {% else %}
+                <div class="badge"
+                    style="background:color-mix(in srgb,#f0883e 12%,transparent);color:#f0883e;border-color:color-mix(in srgb,#f0883e 30%,transparent)">
+                    Fallback: /data/clean/
+                </div>
+                {% endif %}
+                <div class="badge">
+                    <span class="dot"></span>
+                    Last Updated: {{ summary.last_updated }}
+                </div>
+                <button class="theme-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <!-- Sun icon (shown in dark mode) -->
+                    <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <!-- Moon icon (shown in light mode) -->
+                    <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="display:none" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                    <span id="themeLabel">Light Mode</span>
+                </button>
+            </div>
         </div>
-        <div class="header-right">
-            {% if data_source == 'gold' %}
-            <div class="badge" style="background:color-mix(in srgb,#bc8cff 12%,transparent);color:#bc8cff;border-color:color-mix(in srgb,#bc8cff 30%,transparent)">
-                Gold Layer (Delta Lake)
+    </header>
+
+    <!-- MAIN -->
+    <div class="container">
+
+        <!-- METRIC CARDS -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Total Trending Repos</div>
+                <div class="value">{{ summary.total_repos }}</div>
+                <div class="extra">Unique repositories analyzed</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Highest Stars</div>
+                <div class="value">{{ "{:,}".format(summary.highest_stars) }}</div>
+                <div class="extra">Top repository by star count</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Top Language</div>
+                <div class="value" style="font-size:1.3rem">{{ summary.top_language }}</div>
+                <div class="extra">Most popular this week</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Total Languages</div>
+                <div class="value">{{ summary.total_languages }}</div>
+                <div class="extra">Distinct programming languages</div>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="card">
+            <h2>Top 10 Repositori Terpopuler</h2>
+            {% if top_repos %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Repository</th>
+                            <th>Language</th>
+                            <th>Stars</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for repo in top_repos %}
+                        <tr>
+                            <td
+                                class="rank {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                                {{ loop.index }}
+                            </td>
+                            <td>
+                                <a class="repo-name" href="{{ repo.html_url }}" target="_blank" rel="noopener">
+                                    {{ repo.full_name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if repo.language %}
+                                <span class="lang-badge">{{ repo.language }}</span>
+                                {% else %}
+                                <span style="color:var(--text-muted)">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="stars">{{ "{:,}".format(repo.stargazers_count) }}</td>
+                            <td class="desc-text">{{ repo.short_description or "—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             {% else %}
-            <div class="badge" style="background:color-mix(in srgb,#f0883e 12%,transparent);color:#f0883e;border-color:color-mix(in srgb,#f0883e 30%,transparent)">
-                Fallback: /data/clean/
-            </div>
+            <div class="no-data">Belum ada data.<br>Jalankan producer → consumer → spark_analyzer.py atau
+                lakehouse/scheduler.py terlebih dahulu.</div>
             {% endif %}
-            <div class="badge">
-                <span class="dot"></span>
-                Last Updated: {{ summary.last_updated }}
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+            <div class="card">
+                <h2>Distribusi Bahasa Pemrograman</h2>
+                <div class="chart-container">
+                    <canvas id="langChart"></canvas>
+                </div>
             </div>
-            <button class="theme-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                <!-- Sun icon (shown in dark mode) -->
-                <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="3"/>
-                    <line x1="12" y1="21" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="3" y2="12"/>
-                    <line x1="21" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-                <!-- Moon icon (shown in light mode) -->
-                <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     style="display:none" aria-hidden="true">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-                <span id="themeLabel">Light Mode</span>
-            </button>
+            <div class="card">
+                <h2>Identifikasi Tema Utama (Word Frequency)</h2>
+                <div class="chart-container">
+                    <canvas id="wordChart"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
-</header>
 
-<!-- MAIN -->
-<div class="container">
-
-    <!-- METRIC CARDS -->
-    <div class="metrics-grid">
-        <div class="metric-card">
-            <div class="label">Total Trending Repos</div>
-            <div class="value">{{ summary.total_repos }}</div>
-            <div class="extra">Unique repositories analyzed</div>
-        </div>
-        <div class="metric-card">
-            <div class="label">Highest Stars</div>
-            <div class="value">{{ "{:,}".format(summary.highest_stars) }}</div>
-            <div class="extra">Top repository by star count</div>
-        </div>
-        <div class="metric-card">
-            <div class="label">Top Language</div>
-            <div class="value" style="font-size:1.3rem">{{ summary.top_language }}</div>
-            <div class="extra">Most popular this week</div>
-        </div>
-        <div class="metric-card">
-            <div class="label">Total Languages</div>
-            <div class="value">{{ summary.total_languages }}</div>
-            <div class="extra">Distinct programming languages</div>
-        </div>
-    </div>
-
-    <!-- LEADERBOARD -->
-    <div class="card">
-        <h2>Top 10 Repositori Terpopuler</h2>
-        {% if top_repos %}
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Repository</th>
-                        <th>Language</th>
-                        <th>Stars</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for repo in top_repos %}
-                    <tr>
-                        <td class="rank {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
-                            {{ loop.index }}
-                        </td>
-                        <td>
-                            <a class="repo-name" href="{{ repo.html_url }}" target="_blank" rel="noopener">
-                                {{ repo.full_name }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if repo.language %}
-                            <span class="lang-badge">{{ repo.language }}</span>
-                            {% else %}
-                            <span style="color:var(--text-muted)">—</span>
-                            {% endif %}
-                        </td>
-                        <td class="stars">{{ "{:,}".format(repo.stargazers_count) }}</td>
-                        <td class="desc-text">{{ repo.short_description or "—" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="no-data">Belum ada data.<br>Jalankan producer → consumer → spark_analyzer.py atau lakehouse/scheduler.py terlebih dahulu.</div>
-        {% endif %}
-    </div>
-
-    <!-- CHARTS -->
-    <div class="charts-grid">
+        <!-- DATA SOURCE INFO -->
         <div class="card">
-            <h2>Distribusi Bahasa Pemrograman</h2>
-            <div class="chart-container">
-                <canvas id="langChart"></canvas>
+            <h2>Data Sources</h2>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                {% if data_source == 'gold' %}
+                <p style="color:var(--accent-purple);font-weight:700;margin-bottom:8px">Data saat ini berasal dari
+                    <strong>Gold Layer (Delta Lake)</strong> - Medallion pipeline berjalan!
+                </p>
+                <p><strong>Alur aktif:</strong> producer_api/rss.py &rarr; Kafka &rarr; consumer_to_hdfs.py &rarr; HDFS
+                    &rarr; 01_bronze.py &rarr; 02_silver.py &rarr; 03_gold.py &rarr; Dashboard</p>
+                {% else %}
+                <p style="color:var(--accent-orange);font-weight:700;margin-bottom:8px">Data berasal dari
+                    <strong>fallback /data/clean/</strong> (spark_analyzer.py) - Gold Layer belum tersedia.
+                </p>
+                <p><strong>Untuk aktifkan Gold Layer:</strong> jalankan <code>python lakehouse/scheduler.py</code>
+                    setelah ada data di HDFS.</p>
+                {% endif %}
+                <p><strong>API Data:</strong> GitHub API (producer_api.py) → Kafka → HDFS /data/github/api/</p>
+                <p><strong>Trending Data:</strong> GitHub RSS (producer_rss.py) → Kafka → HDFS /data/github/rss/</p>
+                <p><strong>Update Interval:</strong> Chart refresh setiap 30 detik</p>
+                <p><strong>Gold Storage:</strong> Delta Lake → hdfs://localhost:8020/lakehouse/gold/</p>
+                <p><strong>Verifikasi Gold:</strong> <a href="/api/source" target="_blank"
+                        style="color:var(--accent-blue)">/api/source</a> | <a href="/api/data" target="_blank"
+                        style="color:var(--accent-blue)">/api/data</a></p>
             </div>
         </div>
-        <div class="card">
-            <h2>Identifikasi Tema Utama (Word Frequency)</h2>
-            <div class="chart-container">
-                <canvas id="wordChart"></canvas>
-            </div>
+
+        <!-- CREDITS -->
+        <div class="credits">
+            <h3>Tim Pengembang — Kelompok 7</h3>
+            <p>
+                Khumaidi Kharis Az-zacky (5027241049)<br>
+                Prabaswara Febrian Winandika (5027241069)<br>
+                Zahra Khaalishah (5027241070)<br>
+                I Gede Bagus Saka Sinatrya (5027241088)<br>
+                Jofanka Al-Kautsar Pangestu Abady (5027241107)
+            </p>
         </div>
     </div>
 
-    <!-- DATA SOURCE INFO -->
-    <div class="card">
-        <h2>Data Sources</h2>
-        <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
-            {% if data_source == 'gold' %}
-            <p style="color:var(--accent-purple);font-weight:700;margin-bottom:8px">Data saat ini berasal dari <strong>Gold Layer (Delta Lake)</strong> - Medallion pipeline berjalan!</p>
-            <p><strong>Alur aktif:</strong> producer_api/rss.py &rarr; Kafka &rarr; consumer_to_hdfs.py &rarr; HDFS &rarr; 01_bronze.py &rarr; 02_silver.py &rarr; 03_gold.py &rarr; Dashboard</p>
-            {% else %}
-            <p style="color:var(--accent-orange);font-weight:700;margin-bottom:8px">Data berasal dari <strong>fallback /data/clean/</strong> (spark_analyzer.py) - Gold Layer belum tersedia.</p>
-            <p><strong>Untuk aktifkan Gold Layer:</strong> jalankan <code>python lakehouse/scheduler.py</code> setelah ada data di HDFS.</p>
-            {% endif %}
-            <p><strong>API Data:</strong> GitHub API (producer_api.py) → Kafka → HDFS /data/github/api/</p>
-            <p><strong>Trending Data:</strong> GitHub RSS (producer_rss.py) → Kafka → HDFS /data/github/rss/</p>
-            <p><strong>Update Interval:</strong> Chart refresh setiap 30 detik</p>
-            <p><strong>Gold Storage:</strong> Delta Lake → hdfs://localhost:8020/lakehouse/gold/</p>
-            <p><strong>Verifikasi Gold:</strong> <a href="/api/source" target="_blank" style="color:var(--accent-blue)">/api/source</a> | <a href="/api/data" target="_blank" style="color:var(--accent-blue)">/api/data</a></p>
-        </div>
-    </div>
+    <!-- CHART.JS + THEME SCRIPT -->
+    <script>
+        // ============================
+        // THEME TOGGLE
+        // ============================
+        const html = document.documentElement;
+        const themeBtn = document.getElementById('themeToggle');
+        const iconSun = document.getElementById('iconSun');
+        const iconMoon = document.getElementById('iconMoon');
+        const themeLabel = document.getElementById('themeLabel');
 
-    <!-- CREDITS -->
-    <div class="credits">
-        <h3>Tim Pengembang — Kelompok 7</h3>
-        <p>
-            Khumaidi Kharis Az-zacky (5027241049)<br>
-            Prabaswara Febrian Winandika (5027241069)<br>
-            Zahra Khaalishah (5027241070)<br>
-            I Gede Bagus Saka Sinatrya (5027241088)<br>
-            Jofanka Al-Kautsar Pangestu Abady (5027241107)
-        </p>
-    </div>
-</div>
+        // ============================
+        // DECLARE CHART DATA VARIABLES FIRST
+        // ============================
+        let langData = [];
+        let wordData = [];
+        let langChart = null;
+        let wordChart = null;
 
-<!-- CHART.JS + THEME SCRIPT -->
-<script>
-    // ============================
-    // THEME TOGGLE
-    // ============================
-    const html       = document.documentElement;
-    const themeBtn   = document.getElementById('themeToggle');
-    const iconSun    = document.getElementById('iconSun');
-    const iconMoon   = document.getElementById('iconMoon');
-    const themeLabel = document.getElementById('themeLabel');
+        // ============================
+        // COLOR PALETTES (declare early)
+        // ============================
+        const blueShades = [
+            '#1a73e8', '#2196f3', '#42a5f5', '#64b5f6', '#90caf9',
+            '#58a6ff', '#1976d2', '#0d47a1', '#1565c0', '#1e88e5',
+            '#2979ff', '#448aff', '#82b1ff', '#40c4ff', '#0091ea'
+        ];
+        const tealShades = [
+            '#0d9488', '#14b8a6', '#2dd4bf', '#56d4c8', '#5eead4',
+            '#6ee7b7', '#86efac', '#a7f3d0', '#34d399', '#10b981',
+            '#059669', '#047857', '#065f46', '#064e3b', '#022c22'
+        ];
 
-    // ============================
-    // DECLARE CHART DATA VARIABLES FIRST
-    // ============================
-    let langData = [];
-    let wordData = [];
-    let langChart = null;
-    let wordChart = null;
-
-    // ============================
-    // COLOR PALETTES (declare early)
-    // ============================
-    const blueShades = [
-        '#1a73e8','#2196f3','#42a5f5','#64b5f6','#90caf9',
-        '#58a6ff','#1976d2','#0d47a1','#1565c0','#1e88e5',
-        '#2979ff','#448aff','#82b1ff','#40c4ff','#0091ea'
-    ];
-    const tealShades = [
-        '#0d9488','#14b8a6','#2dd4bf','#56d4c8','#5eead4',
-        '#6ee7b7','#86efac','#a7f3d0','#34d399','#10b981',
-        '#059669','#047857','#065f46','#064e3b','#022c22'
-    ];
-
-    function applyTheme(theme) {
-        try {
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (theme === 'light') {
-                iconSun.style.display  = 'none';
-                iconMoon.style.display = 'block';
-                themeLabel.textContent  = 'Dark Mode';
-            } else {
-                iconSun.style.display  = 'block';
-                iconMoon.style.display = 'none';
-                themeLabel.textContent  = 'Light Mode';
-            }
-            updateChartColors();
-        } catch (error) {
-            console.error('Error applying theme:', error);
-        }
-    }
-
-    function toggleTheme() {
-        const current = html.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark');
-    }
-
-    // Restore saved theme
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-
-    // ============================
-    // CHART.JS DATA — Initialize values
-    // ============================
-    (function() {
-        try {
-            const langJSON = '{{ lang_dist_json | safe }}';
-            const wordJSON = '{{ word_freq_json | safe }}';
-            
-            console.log('[DEBUG] langJSON received:', langJSON);
-            console.log('[DEBUG] wordJSON received:', wordJSON);
-            
-            // Parse language data
-            if (langJSON && langJSON.trim() && langJSON !== 'None' && langJSON !== '[]') {
-                try {
-                    langData = JSON.parse(langJSON);
-                    console.log('[DEBUG] Successfully parsed langData:', langData.length, 'items');
-                } catch (e) {
-                    console.error('[ERROR] Failed to parse langJSON:', e.message);
+        function applyTheme(theme) {
+            try {
+                html.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (theme === 'light') {
+                    iconSun.style.display = 'none';
+                    iconMoon.style.display = 'block';
+                    themeLabel.textContent = 'Dark Mode';
+                } else {
+                    iconSun.style.display = 'block';
+                    iconMoon.style.display = 'none';
+                    themeLabel.textContent = 'Light Mode';
                 }
-            } else {
-                console.warn('[WARNING] langJSON is empty or invalid, using fallback');
-                langData = [];
+                updateChartColors();
+            } catch (error) {
+                console.error('Error applying theme:', error);
             }
-            
-            // Parse word data
-            if (wordJSON && wordJSON.trim() && wordJSON !== 'None' && wordJSON !== '[]') {
-                try {
-                    wordData = JSON.parse(wordJSON);
-                    console.log('[DEBUG] Successfully parsed wordData:', wordData.length, 'items');
-                } catch (e) {
-                    console.error('[ERROR] Failed to parse wordJSON:', e.message);
-                }
-            } else {
-                console.warn('[WARNING] wordJSON is empty or invalid, using fallback');
-                wordData = [];
-            }
-            
-        } catch (error) {
-            console.error('[ERROR] Outer try-catch:', error.message);
         }
-        
-        console.log('[DEBUG] Final state - langData:', langData.length, 'items, wordData:', wordData.length, 'items');
-    })();
 
-    // NOW safe to apply theme
-    applyTheme(savedTheme);
+        function toggleTheme() {
+            const current = html.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
 
-    function getChartColors() {
-        const isDark = html.getAttribute('data-theme') === 'dark';
-        return {
-            text:   isDark ? '#8b949e' : '#57606a',
-            grid:   isDark ? 'rgba(48,54,61,0.5)' : 'rgba(208,215,222,0.6)',
-            tooltip: {
-                bg:    isDark ? '#1c2128' : '#ffffff',
-                border:isDark ? '#30363d' : '#d0d7de',
-                title: isDark ? '#ecf0f1' : '#1f2328',
-                body:  isDark ? '#8b949e' : '#57606a',
+        // Restore saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+
+        // ============================
+        // CHART.JS DATA — Initialize values
+        // ============================
+        (function () {
+            try {
+                const langJSON = '{{ lang_dist_json | safe }}';
+                const wordJSON = '{{ word_freq_json | safe }}';
+
+                console.log('[DEBUG] langJSON received:', langJSON);
+                console.log('[DEBUG] wordJSON received:', wordJSON);
+
+                // Parse language data
+                if (langJSON && langJSON.trim() && langJSON !== 'None' && langJSON !== '[]') {
+                    try {
+                        langData = JSON.parse(langJSON);
+                        console.log('[DEBUG] Successfully parsed langData:', langData.length, 'items');
+                    } catch (e) {
+                        console.error('[ERROR] Failed to parse langJSON:', e.message);
+                    }
+                } else {
+                    console.warn('[WARNING] langJSON is empty or invalid, using fallback');
+                    langData = [];
+                }
+
+                // Parse word data
+                if (wordJSON && wordJSON.trim() && wordJSON !== 'None' && wordJSON !== '[]') {
+                    try {
+                        wordData = JSON.parse(wordJSON);
+                        console.log('[DEBUG] Successfully parsed wordData:', wordData.length, 'items');
+                    } catch (e) {
+                        console.error('[ERROR] Failed to parse wordJSON:', e.message);
+                    }
+                } else {
+                    console.warn('[WARNING] wordJSON is empty or invalid, using fallback');
+                    wordData = [];
+                }
+
+            } catch (error) {
+                console.error('[ERROR] Outer try-catch:', error.message);
             }
-        };
-    }
 
-    function buildChartOptions(colors) {
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
+            console.log('[DEBUG] Final state - langData:', langData.length, 'items, wordData:', wordData.length, 'items');
+        })();
+
+        // NOW safe to apply theme
+        applyTheme(savedTheme);
+
+        function getChartColors() {
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            return {
+                text: isDark ? '#8b949e' : '#57606a',
+                grid: isDark ? 'rgba(48,54,61,0.5)' : 'rgba(208,215,222,0.6)',
                 tooltip: {
-                    backgroundColor: colors.tooltip.bg,
-                    borderColor:     colors.tooltip.border,
-                    borderWidth: 1,
-                    titleColor:  colors.tooltip.title,
-                    bodyColor:   colors.tooltip.body,
-                    padding: 12,
-                    cornerRadius: 8
+                    bg: isDark ? '#1c2128' : '#ffffff',
+                    border: isDark ? '#30363d' : '#d0d7de',
+                    title: isDark ? '#ecf0f1' : '#1f2328',
+                    body: isDark ? '#8b949e' : '#57606a',
                 }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: colors.text, font: { size: 11, weight: '600', family: 'Inter' } }
+            };
+        }
+
+        function buildChartOptions(colors) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: colors.tooltip.bg,
+                        borderColor: colors.tooltip.border,
+                        borderWidth: 1,
+                        titleColor: colors.tooltip.title,
+                        bodyColor: colors.tooltip.body,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
                 },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: colors.grid },
-                    ticks: { color: colors.text, stepSize: 1 }
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: colors.text, font: { size: 11, weight: '600', family: 'Inter' } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: colors.grid },
+                        ticks: { color: colors.text, stepSize: 1 }
+                    }
+                }
+            };
+        }
+
+        function buildCharts() {
+            const colors = getChartColors();
+            console.log('[BUILD] Starting buildCharts - langData:', langData.length, 'wordData:', wordData.length);
+
+            if (!langData || langData.length === 0) {
+                console.warn('[WARNING] langData is empty - chart will not render');
+            } else {
+                try {
+                    const langCanv = document.getElementById('langChart');
+                    if (!langCanv) {
+                        console.error('[ERROR] langChart canvas element not found');
+                        return;
+                    }
+                    const ctxLang = langCanv.getContext('2d');
+                    if (langChart) {
+                        langChart.destroy();
+                        console.log('[DEBUG] Previous langChart destroyed');
+                    }
+                    langChart = new Chart(ctxLang, {
+                        type: 'bar',
+                        data: {
+                            labels: langData.map(d => d.language),
+                            datasets: [{
+                                label: 'Repositories',
+                                data: langData.map(d => d.count),
+                                backgroundColor: langData.map((_, i) => blueShades[i % blueShades.length]),
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 48
+                            }]
+                        },
+                        options: buildChartOptions(colors)
+                    });
+                    console.log('[SUCCESS] langChart created successfully');
+                } catch (e) {
+                    console.error('[ERROR] Failed to create langChart:', e.message);
                 }
             }
-        };
-    }
 
-    function buildCharts() {
-        const colors = getChartColors();
-        console.log('[BUILD] Starting buildCharts - langData:', langData.length, 'wordData:', wordData.length);
-
-        if (!langData || langData.length === 0) {
-            console.warn('[WARNING] langData is empty - chart will not render');
-        } else {
-            try {
-                const langCanv = document.getElementById('langChart');
-                if (!langCanv) {
-                    console.error('[ERROR] langChart canvas element not found');
-                    return;
+            if (!wordData || wordData.length === 0) {
+                console.warn('[WARNING] wordData is empty - chart will not render');
+            } else {
+                try {
+                    const wordCanv = document.getElementById('wordChart');
+                    if (!wordCanv) {
+                        console.error('[ERROR] wordChart canvas element not found');
+                        return;
+                    }
+                    const ctxWord = wordCanv.getContext('2d');
+                    if (wordChart) {
+                        wordChart.destroy();
+                        console.log('[DEBUG] Previous wordChart destroyed');
+                    }
+                    wordChart = new Chart(ctxWord, {
+                        type: 'bar',
+                        data: {
+                            labels: wordData.map(d => d.word),
+                            datasets: [{
+                                label: 'Frequency',
+                                data: wordData.map(d => d.frequency),
+                                backgroundColor: wordData.map((_, i) => tealShades[i % tealShades.length]),
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 48
+                            }]
+                        },
+                        options: buildChartOptions(colors)
+                    });
+                    console.log('[SUCCESS] wordChart created successfully');
+                } catch (e) {
+                    console.error('[ERROR] Failed to create wordChart:', e.message);
                 }
-                const ctxLang = langCanv.getContext('2d');
-                if (langChart) {
-                    langChart.destroy();
-                    console.log('[DEBUG] Previous langChart destroyed');
-                }
-                langChart = new Chart(ctxLang, {
-                    type: 'bar',
-                    data: {
-                        labels: langData.map(d => d.language),
-                        datasets: [{
-                            label: 'Repositories',
-                            data: langData.map(d => d.count),
-                            backgroundColor: langData.map((_, i) => blueShades[i % blueShades.length]),
-                            borderRadius: 6,
-                            borderSkipped: false,
-                            maxBarThickness: 48
-                        }]
-                    },
-                    options: buildChartOptions(colors)
-                });
-                console.log('[SUCCESS] langChart created successfully');
-            } catch (e) {
-                console.error('[ERROR] Failed to create langChart:', e.message);
             }
         }
 
-        if (!wordData || wordData.length === 0) {
-            console.warn('[WARNING] wordData is empty - chart will not render');
-        } else {
+        function updateChartColors() {
             try {
-                const wordCanv = document.getElementById('wordChart');
-                if (!wordCanv) {
-                    console.error('[ERROR] wordChart canvas element not found');
-                    return;
-                }
-                const ctxWord = wordCanv.getContext('2d');
-                if (wordChart) {
-                    wordChart.destroy();
-                    console.log('[DEBUG] Previous wordChart destroyed');
-                }
-                wordChart = new Chart(ctxWord, {
-                    type: 'bar',
-                    data: {
-                        labels: wordData.map(d => d.word),
-                        datasets: [{
-                            label: 'Frequency',
-                            data: wordData.map(d => d.frequency),
-                            backgroundColor: wordData.map((_, i) => tealShades[i % tealShades.length]),
-                            borderRadius: 6,
-                            borderSkipped: false,
-                            maxBarThickness: 48
-                        }]
-                    },
-                    options: buildChartOptions(colors)
-                });
-                console.log('[SUCCESS] wordChart created successfully');
-            } catch (e) {
-                console.error('[ERROR] Failed to create wordChart:', e.message);
+                console.log('[UPDATE] updateChartColors called');
+                buildCharts();
+            } catch (error) {
+                console.error('[ERROR] updateChartColors failed:', error.message);
             }
         }
-    }
 
-    function updateChartColors() {
-        try {
-            console.log('[UPDATE] updateChartColors called');
+        // Build on load - wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', buildCharts);
+        } else {
             buildCharts();
-        } catch (error) {
-            console.error('[ERROR] updateChartColors failed:', error.message);
         }
-    }
-
-    // Build on load - wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', buildCharts);
-    } else {
-        buildCharts();
-    }
-</script>
+    </script>
 
 </body>
+
 </html>
